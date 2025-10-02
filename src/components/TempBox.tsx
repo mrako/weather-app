@@ -15,6 +15,7 @@ interface TempBoxProps {
 const TempBox: React.FC<TempBoxProps> = ({ code, name }) => {
   const { setLastUpdated } = useContext(LastUpdatedContext);
   const [temp, setTemp] = useState<number | null>(null);
+  const [battery, setBattery] = useState<number | null>(null);
   const [sauna, setSauna] = useState<boolean>(false);
   const navigate = useNavigate();
 
@@ -30,6 +31,7 @@ const TempBox: React.FC<TempBoxProps> = ({ code, name }) => {
           socket.on(`current-${code}`, (current: any) => {
             if (current) {
               setTemp(current.temp);
+              setBattery(current.battery);
 
               setLastUpdated();
             }
@@ -75,6 +77,9 @@ const TempBox: React.FC<TempBoxProps> = ({ code, name }) => {
   return (
     <div className="col" role="button" tabIndex={0} onClick={handleClick}>
       <div className={`area ${sauna && temp !== null ? getSaunaColor(temp) : ''} tempbox-area`}>
+        {battery !== null && battery < 3000 && (
+          <span className="battery-indicator" />
+        )}
         <span className="location center">{name}</span>
         {temp !== null && (
           <span className="temp center">

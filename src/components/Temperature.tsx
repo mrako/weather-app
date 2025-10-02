@@ -10,6 +10,7 @@ interface TemperatureProps {
 const Temperature: React.FC<TemperatureProps> = ({ code }) => {
   const { setLastUpdated } = useContext(LastUpdatedContext);
   const [temp, setTemp] = useState<number | null>(null);
+  const [battery, setBattery] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +25,7 @@ const Temperature: React.FC<TemperatureProps> = ({ code }) => {
           socket.on(`current-${code}`, (current: any) => {
             if (current) {
               setTemp(current.temp);
+              setBattery(current.battery);
 
               setLastUpdated();
             }
@@ -59,6 +61,9 @@ const Temperature: React.FC<TemperatureProps> = ({ code }) => {
       tabIndex={0}
       onClick={() => navigate(`/tags/${code}`)}
     >
+      {battery !== null && battery < 3000 && (
+        <span className="battery-indicator" />
+      )}
       <span>{Math.round(temp)}&deg;</span>
     </div>
   );
