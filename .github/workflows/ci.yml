@@ -1,0 +1,50 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Start frontend service
+        run: docker compose up -d frontend
+
+      - run: npm install
+
+      - name: Install Playwright dependencies
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Playwright tests (headless)
+        run: npm run test:e2e -- --output=playwright-results
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: ./playwright-results
+          retention-days: 7
+
+      - name: Tear down Docker Compose
+        if: always()
+        run: docker compose down -v

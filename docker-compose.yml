@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build:
+      args:
+        VITE_ENDPOINT: https://home.hopefully.works
+        VITE_STORED_USER: weatherapp:stored-user
+    ports:
+      - 8000:80
+
+  robot:
+    build: robot
+    command: robot --outputdir /results /robot
+    environment:
+      BROWSER: HeadlessChrome
+      SERVER: http://localhost:8000
+    ports:
+      - 8000:8000
+    volumes:
+      - ./robot:/robot:ro
+      - ./results/robot:/results:rw
+    depends_on:
+      - frontend
+    network_mode: host
